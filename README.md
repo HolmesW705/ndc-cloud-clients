@@ -32,7 +32,11 @@ Upstream build instructions and license notices remain in each source checkout.
   the upstream extension header-search paths depend on that location.
 - Desktop: follow `doc/macOS-development.md` or the CMake instructions in the
   prepared source. For an Apple Silicon CMake build, explicitly set
-  `-DCMAKE_OSX_ARCHITECTURES=arm64`; the Xcode extension build needs this value. Windows and Linux packages use the upstream KDE Craft and
+  `-DCMAKE_OSX_ARCHITECTURES=arm64`; the Xcode extension build needs this value.
+  For customer releases, use the pinned `craftmaster.ini` / Qt6.10.2 environment,
+  then run `python3 finalize-macos.py "/path/to/NDC Cloud.app"` before signing.
+  This relocates installed client libraries into the staged app; the helper
+  refuses installed or already publisher-signed applications. Windows and Linux packages use the upstream KDE Craft and
   AppImage build environments in the manually dispatched workflow.
 
 Unsigned build artifacts are build outputs, not approved customer releases.
