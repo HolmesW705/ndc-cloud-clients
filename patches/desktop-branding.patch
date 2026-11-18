@@ -206,10 +206,24 @@ index ca29711..0b42e4e 100644
  		};
  /* End PBXShellScriptBuildPhase section */
 diff --git a/src/gui/CMakeLists.txt b/src/gui/CMakeLists.txt
-index fcaa11d..b080616 100644
+index fcaa11d..d884d39 100644
 --- a/src/gui/CMakeLists.txt
 +++ b/src/gui/CMakeLists.txt
-@@ -821,15 +821,17 @@ if(BUILD_OWNCLOUD_OSX_BUNDLE AND NOT BUILD_LIBRARIES_ONLY)
+@@ -810,6 +810,13 @@ if(BUILD_OWNCLOUD_OSX_BUNDLE AND NOT BUILD_LIBRARIES_ONLY)
+         OUTPUT_STRIP_TRAILING_WHITESPACE
+     )
+ 
++    execute_process(COMMAND "${MACDEPLOYQT_EXECUTABLE}" -help
++        OUTPUT_VARIABLE MACDEPLOYQT_HELP ERROR_VARIABLE MACDEPLOYQT_HELP_ERROR)
++    set(MACDEPLOYQT_SIGNING_OPTION "")
++    if("${MACDEPLOYQT_HELP}${MACDEPLOYQT_HELP_ERROR}" MATCHES "-no-codesign")
++        set(MACDEPLOYQT_SIGNING_OPTION "-no-codesign")
++    endif()
++
+     set(cmd_NAME ${APPLICATION_EXECUTABLE}cmd)
+ 
+     if(CMAKE_BUILD_TYPE MATCHES Debug)
+@@ -821,15 +828,17 @@ if(BUILD_OWNCLOUD_OSX_BUNDLE AND NOT BUILD_LIBRARIES_ONLY)
      add_custom_command(TARGET nextcloud POST_BUILD
          COMMAND "${MACDEPLOYQT_EXECUTABLE}"
          "$<TARGET_FILE_DIR:nextcloud>/../.."
@@ -219,7 +233,7 @@ index fcaa11d..b080616 100644
 -        -executable="$<TARGET_FILE_DIR:nextcloud>/${cmd_NAME}"
 -        -libpath=${MACDEPLOYQT_LIB_DIR}
 -        -libpath=${BIN_OUTPUT_DIRECTORY}
-+        -no-codesign
++        ${MACDEPLOYQT_SIGNING_OPTION}
 +        "-executable=$<TARGET_FILE_DIR:nextcloud>/${cmd_NAME}"
 +        "-libpath=${MACDEPLOYQT_LIB_DIR}"
 +        "-libpath=${BIN_OUTPUT_DIRECTORY}"

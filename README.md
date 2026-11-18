@@ -31,7 +31,8 @@ Upstream build instructions and license notices remain in each source checkout.
   the `Nextcloud` scheme. Keep Swift packages under DerivedData/SourcePackages;
   the upstream extension header-search paths depend on that location.
 - Desktop: follow `doc/macOS-development.md` or the CMake instructions in the
-  prepared source. Windows and Linux packages use the upstream KDE Craft and
+  prepared source. For an Apple Silicon CMake build, explicitly set
+  `-DCMAKE_OSX_ARCHITECTURES=arm64`; the Xcode extension build needs this value. Windows and Linux packages use the upstream KDE Craft and
   AppImage build environments in the manually dispatched workflow.
 
 Unsigned build artifacts are build outputs, not approved customer releases.
