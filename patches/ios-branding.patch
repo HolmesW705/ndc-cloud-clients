@@ -1793,7 +1793,7 @@ index cfcee5a..625b675 100644
  	<dict>
  		<key>NSExtensionMainStoryboard</key>
 diff --git a/Brand/NCBrand.swift b/Brand/NCBrand.swift
-index 69372d5..e872a8c 100755
+index 69372d5..0465b86 100755
 --- a/Brand/NCBrand.swift
 +++ b/Brand/NCBrand.swift
 @@ -61,19 +61,19 @@ struct NextcloudVersion: Comparable {
@@ -1813,11 +1813,12 @@ index 69372d5..e872a8c 100755
 -    var linkloginPreferredProviders: String = "https://nextcloud.com/signup-ios"
 -    var webLoginAutenticationProtocol: String = "nc://"                                        // example "abc://"
 -    var privacy: String = "https://nextcloud.com/privacy"
+-    var sourceCode: String = "https://github.com/nextcloud/ios"
 +    var linkLoginHost: String = "https://northerndatacenter.ca/ndc-cloud/"
 +    var linkloginPreferredProviders: String = "https://northerndatacenter.ca/ndc-cloud/"
 +    var webLoginAutenticationProtocol: String = "ndccloud://"                                        // example "abc://"
 +    var privacy: String = "https://cloud.northerndatacenter.net/settings/help#privacy-heading"
-     var sourceCode: String = "https://github.com/nextcloud/ios"
++    var sourceCode: String = "https://github.com/HolmesW705/ndc-cloud-clients"
      var mobileconfig: String = "/remote.php/dav/provisioning/apple-provisioning.mobileconfig"
 -    var appStoreUrl: String = "https://apps.apple.com/in/app/nextcloud/id1125420102"
 +    var appStoreUrl: String = "https://northerndatacenter.ca/ndc-cloud/"
@@ -1984,7 +1985,7 @@ index f4b9c9d..cedafca 100755
  </dict>
  </plist>
 diff --git a/Brand/iOSClient.plist b/Brand/iOSClient.plist
-index 94ea714..aca0a50 100755
+index 94ea714..0b9a44e 100755
 --- a/Brand/iOSClient.plist
 +++ b/Brand/iOSClient.plist
 @@ -12,7 +12,7 @@
@@ -1996,6 +1997,15 @@ index 94ea714..aca0a50 100755
  	<key>CFBundleExecutable</key>
  	<string>$(EXECUTABLE_NAME)</string>
  	<key>CFBundleIdentifier</key>
+@@ -20,7 +20,7 @@
+ 	<key>CFBundleInfoDictionaryVersion</key>
+ 	<string>6.0</string>
+ 	<key>CFBundleName</key>
+-	<string>$(PRODUCT_NAME)</string>
++	<string>NDC Cloud</string>
+ 	<key>CFBundlePackageType</key>
+ 	<string>APPL</string>
+ 	<key>CFBundleShortVersionString</key>
 @@ -33,10 +33,10 @@
  			<key>CFBundleTypeRole</key>
  			<string>Editor</string>

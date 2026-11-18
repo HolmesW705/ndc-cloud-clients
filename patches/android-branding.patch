@@ -10727,7 +10727,7 @@ index 0000000..9b2ca37
 +FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
 +OTHER DEALINGS IN THE FONT SOFTWARE.
 diff --git a/app/src/main/res/values/setup.xml b/app/src/main/res/values/setup.xml
-index 1c47e9f..8494983 100644
+index 1c47e9f..c4b7504 100644
 --- a/app/src/main/res/values/setup.xml
 +++ b/app/src/main/res/values/setup.xml
 @@ -11,32 +11,32 @@
@@ -10824,7 +10824,8 @@ index 1c47e9f..8494983 100644
 +    <bool name="recommend_enabled">false</bool>
      <bool name="logger_enabled">false</bool>
      <bool name="sourcecode_enabled">true</bool>
-     <string name="sourcecode_url" translatable="false">https://github.com/nextcloud/android</string>
+-    <string name="sourcecode_url" translatable="false">https://github.com/nextcloud/android</string>
++    <string name="sourcecode_url" translatable="false">https://github.com/HolmesW705/ndc-cloud-clients</string>
      <bool name="license_enabled">true</bool>
      <string name="license_url" translatable="false">https://www.gnu.org/licenses/gpl-2.0.html</string>
      <string name="url_imprint"></string>
