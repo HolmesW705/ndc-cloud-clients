@@ -25,6 +25,8 @@ jobs:
           python prepare.py desktop desktop
           Copy-Item desktop/craftmaster.ini craftmaster.ini
           (Get-Content craftmaster.ini) -replace 'nextcloud-client.buildTests = True', 'nextcloud-client.buildTests = False' | Set-Content craftmaster.ini
+          $pythonDirectory = python -c "import pathlib,sys; print(pathlib.Path(sys.executable).parent)"
+          (Get-Content craftmaster.ini) -replace '^Paths/Python = C:\\Python312-x64$', "Paths/Python = $pythonDirectory" | Set-Content craftmaster.ini
       - name: Install official Craft dependencies
         shell: pwsh
         run: |
@@ -79,7 +81,7 @@ jobs:
           export DESKTOP_CLIENT_ROOT="$PWD/desktop" QT_BASE_DIR=/root/linux-gcc-x86_64
           bash desktop/admin/linux/build-appimage.sh
           mkdir artifacts
-          find /app -maxdepth 2 -type f -iname '*ndc*.AppImage' -exec cp '{}' artifacts/ ';'
+          find desktop -maxdepth 1 -type f -iname '*ndc*.AppImage' -exec cp '{}' artifacts/ ';'
           test -n "$(find artifacts -type f -name '*.AppImage' -print -quit)"
           cd artifacts
           sha256sum *.AppImage > SHA256SUMS.txt
