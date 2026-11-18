@@ -1,0 +1,12 @@
+{
+  "name": "NDC Cloud",
+  "android_package": "net.northerndatacenter.cloud",
+  "ios_bundle": "net.northerndatacenter.cloud.ios",
+  "ios_app_group": "group.net.northerndatacenter.cloud.ios",
+  "ios_shared_group": "group.net.northerndatacenter.cloud.apps",
+  "desktop_bundle": "net.northerndatacenter.cloud.desktop",
+  "callback_scheme": "ndccloud",
+  "server": "https://cloud.northerndatacenter.net",
+  "apple_team_id": null,
+  "upstream_notices_retained": true
+}

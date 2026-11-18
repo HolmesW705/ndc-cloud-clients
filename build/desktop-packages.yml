@@ -1,0 +1,91 @@
+# SPDX-FileCopyrightText: 2026 Northern Data Centre
+# SPDX-License-Identifier: GPL-2.0-or-later
+name: NDC desktop packages
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ndc-desktop-packages
+  cancel-in-progress: false
+jobs:
+  windows:
+    runs-on: windows-2022
+    timeout-minutes: 120
+    env:
+      CRAFT_TARGET: windows-msvc2022_64-cl
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        with:
+          python-version: '3.12'
+      - name: Prepare branded source
+        shell: pwsh
+        run: |
+          python prepare.py desktop desktop
+          Copy-Item desktop/craftmaster.ini craftmaster.ini
+          (Get-Content craftmaster.ini) -replace 'nextcloud-client.buildTests = True', 'nextcloud-client.buildTests = False' | Set-Content craftmaster.ini
+      - name: Install official Craft dependencies
+        shell: pwsh
+        run: |
+          git clone --depth=1 https://github.com/KDE/craftmaster.git CraftMaster
+          function craft {
+            python "$env:GITHUB_WORKSPACE/CraftMaster/CraftMaster.py" --config "$env:GITHUB_WORKSPACE/craftmaster.ini" --target $env:CRAFT_TARGET -c @args
+            if ($LASTEXITCODE -ne 0) { throw "Craft failed: $LASTEXITCODE" }
+          }
+          craft --add-blueprint-repository 'https://github.com/nextcloud/craft-blueprints-kde.git|stable-34.0|'
+          craft --add-blueprint-repository 'https://github.com/nextcloud/craft-blueprints-nextcloud.git|stable-34.0|'
+          craft craft
+          craft --install-deps nextcloud-client
+          choco install inkscape -y --no-progress
+          if ($LASTEXITCODE -ne 0) { throw 'Inkscape installation failed' }
+      - name: Build and package NDC Cloud
+        shell: pwsh
+        run: |
+          function craft {
+            python "$env:GITHUB_WORKSPACE/CraftMaster/CraftMaster.py" --config "$env:GITHUB_WORKSPACE/craftmaster.ini" --target $env:CRAFT_TARGET -c @args
+            if ($LASTEXITCODE -ne 0) { throw "Craft failed: $LASTEXITCODE" }
+          }
+          $blueprints = @(Get-ChildItem "$env:GITHUB_WORKSPACE" -Filter nextcloud-client.py -Recurse | Where-Object FullName -notlike '*\desktop\*')
+          if ($blueprints.Count -ne 1) { throw 'Expected one Craft client blueprint' }
+          python brand-craft.py $blueprints[0].FullName
+          craft --src-dir "$env:GITHUB_WORKSPACE/desktop" nextcloud-client
+          craft --package nextcloud-client
+          New-Item -ItemType Directory artifacts | Out-Null
+          $packages = @(Get-ChildItem "$env:GITHUB_WORKSPACE/$env:CRAFT_TARGET" -Filter '*ndccloud*.exe' -Recurse | Where-Object FullName -match '\\tmp\\')
+          if ($packages.Count -eq 0) { throw 'NDC installer was not produced' }
+          $packages | Copy-Item -Destination artifacts
+          Get-ChildItem artifacts | Get-FileHash -Algorithm SHA256 | Format-Table -AutoSize | Out-File artifacts/SHA256SUMS.txt
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: NDC-Cloud-Windows-unsigned
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 14
+  linux:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    container: ghcr.io/nextcloud/continuous-integration-client-appimage-qt6:client-appimage-el8-6.10.2-8
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+      - name: Prepare source and build AppImage
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 prepare.py desktop desktop
+          sed -i 's@/apps/Nextcloud.png@/apps/NDCCloud.png@g' desktop/admin/linux/build-appimage.sh
+          export APPNAME=NDCCloud EXECUTABLE_NAME=ndccloud BUILD_UPDATER=OFF
+          export BUILDNR=1 VERSION_SUFFIX=ndc1 PR_ID=master
+          export DESKTOP_CLIENT_ROOT="$PWD/desktop" QT_BASE_DIR=/root/linux-gcc-x86_64
+          bash desktop/admin/linux/build-appimage.sh
+          mkdir artifacts
+          find /app -maxdepth 2 -type f -iname '*ndc*.AppImage' -exec cp '{}' artifacts/ ';'
+          test -n "$(find artifacts -type f -name '*.AppImage' -print -quit)"
+          cd artifacts
+          sha256sum *.AppImage > SHA256SUMS.txt
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: NDC-Cloud-Linux-AppImage
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 14

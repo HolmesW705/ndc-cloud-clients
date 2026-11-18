@@ -1,0 +1,9 @@
+/desktop/
+/android/
+/ios/
+__pycache__/
+*.p12
+*.jks
+*.keystore
+*.mobileprovision
+.DS_Store
