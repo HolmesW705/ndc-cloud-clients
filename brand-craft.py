@@ -29,3 +29,12 @@ for old, new in replacements.items():
         raise RuntimeError(f"unexpected Craft blueprint: {old}")
     source = source.replace(old, new)
 path.write_text(source)
+
+# The upstream filter otherwise removes the renamed executables from the payload.
+blacklist = path.with_name("blacklist.txt")
+original = r"bin/(?!(nextcloud|nextcloudcmd|QtWebEngineProcess)).*\.exe"
+branded = r"bin/(?!(ndccloud|ndccloudcmd|QtWebEngineProcess)).*\.exe"
+filters = blacklist.read_text()
+if filters.count(original) != 1:
+    raise RuntimeError("unexpected Craft executable filter")
+blacklist.write_text(filters.replace(original, branded))
