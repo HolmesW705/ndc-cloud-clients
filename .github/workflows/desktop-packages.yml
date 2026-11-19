@@ -73,7 +73,11 @@ jobs:
           $packages = @(Get-ChildItem "$env:GITHUB_WORKSPACE/$env:CRAFT_TARGET" -Filter '*ndccloud*.exe' -Recurse | Where-Object FullName -match '\\tmp\\')
           if ($packages.Count -eq 0) { throw 'NDC installer was not produced' }
           $packages | Copy-Item -Destination artifacts
-          Get-ChildItem artifacts | Get-FileHash -Algorithm SHA256 | Format-Table -AutoSize | Out-File artifacts/SHA256SUMS.txt
+          $hashLines = @(Get-ChildItem artifacts -File -Filter '*.exe' | Sort-Object Name | ForEach-Object {
+            $hash = Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256
+            '{0} *{1}' -f $hash.Hash.ToLowerInvariant(), $_.Name
+          })
+          $hashLines | Set-Content -Encoding ascii artifacts/SHA256SUMS.txt
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: always()
         with:
