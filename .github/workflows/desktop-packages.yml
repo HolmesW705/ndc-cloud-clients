@@ -63,16 +63,25 @@ jobs:
           if ($blueprints.Count -ne 1) { throw 'Expected one Craft client blueprint' }
           python brand-craft.py $blueprints[0].FullName
           craft --options "nextcloud-client.srcDir=$env:GITHUB_WORKSPACE/desktop" nextcloud-client
-          craft --package nextcloud-client
+          # Python temporary files must share the Craft drive for its hard links.
+          $ndcPackageTemp = Join-Path $env:GITHUB_WORKSPACE '.ndc-package-temp'
+          New-Item -ItemType Directory -Force $ndcPackageTemp | Out-Null
+          $env:TEMP = $ndcPackageTemp
+          $env:TMP = $ndcPackageTemp
+          craft --options "nextcloud-client.srcDir=$env:GITHUB_WORKSPACE/desktop" --package nextcloud-client
           New-Item -ItemType Directory artifacts | Out-Null
           $packages = @(Get-ChildItem "$env:GITHUB_WORKSPACE/$env:CRAFT_TARGET" -Filter '*ndccloud*.exe' -Recurse | Where-Object FullName -match '\\tmp\\')
           if ($packages.Count -eq 0) { throw 'NDC installer was not produced' }
           $packages | Copy-Item -Destination artifacts
           Get-ChildItem artifacts | Get-FileHash -Algorithm SHA256 | Format-Table -AutoSize | Out-File artifacts/SHA256SUMS.txt
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
         with:
           name: NDC-Cloud-Windows-unsigned
-          path: artifacts/
+          path: |
+            artifacts/
+            windows-msvc2022_64-cl/tmp/ndccloud*.exe
+            windows-msvc2022_64-cl/tmp/ndccloud*.7z
           if-no-files-found: error
           retention-days: 14
   linux:
