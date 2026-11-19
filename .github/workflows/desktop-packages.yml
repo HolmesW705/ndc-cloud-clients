@@ -34,6 +34,9 @@ jobs:
         shell: pwsh
         run: |
           python prepare.py desktop desktop
+          if ($LASTEXITCODE -ne 0) { throw 'NDC source preparation failed' }
+          if (-not (Select-String -Path desktop/NEXTCLOUD.cmake -SimpleMatch '"ndccloud"' -Quiet)) { throw 'NDC application identity is missing' }
+          if (-not (Test-Path desktop/theme/ndccloud.VisualElementsManifest.xml)) { throw 'NDC Start-menu manifest is missing' }
           Copy-Item desktop/craftmaster.ini craftmaster.ini
           (Get-Content craftmaster.ini) -replace 'nextcloud-client.buildTests = True', 'nextcloud-client.buildTests = False' | Set-Content craftmaster.ini
           $pythonDirectory = python -c "import pathlib,sys; print(pathlib.Path(sys.executable).parent)"
@@ -62,7 +65,9 @@ jobs:
           $blueprints = @(Get-ChildItem "$env:GITHUB_WORKSPACE" -Filter nextcloud-client.py -Recurse | Where-Object FullName -notlike '*\desktop\*')
           if ($blueprints.Count -ne 1) { throw 'Expected one Craft client blueprint' }
           python brand-craft.py $blueprints[0].FullName
+          if ($LASTEXITCODE -ne 0) { throw 'NDC packager preparation failed' }
           craft --options "nextcloud-client.srcDir=$env:GITHUB_WORKSPACE/desktop" nextcloud-client
+          if (-not (Test-Path "$env:GITHUB_WORKSPACE/$env:CRAFT_TARGET/bin/ndccloud.exe")) { throw 'NDC executable was not installed; refusing to package another client' }
           # Python temporary files must share the Craft drive for its hard links.
           $ndcPackageTemp = Join-Path $env:GITHUB_WORKSPACE '.ndc-package-temp'
           New-Item -ItemType Directory -Force $ndcPackageTemp | Out-Null
