@@ -8,6 +8,8 @@ import sys
 path = Path(sys.argv[1])
 source = path.read_text()
 replacements = {
+    # Craft's current wildcard exports no longer provide os to this blueprint.
+    'import info\n': 'import os\nimport info\n',
     'self.displayName = "Nextcloud"': 'self.displayName = "NDC Cloud"',
     'self.webpage = "https://nextcloud.com"': 'self.webpage = "https://northerndatacenter.ca"',
     'self.defines["appname"] = "nextcloud"': 'self.defines["appname"] = "ndccloud"',
