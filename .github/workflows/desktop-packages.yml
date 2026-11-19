@@ -62,7 +62,7 @@ jobs:
           $blueprints = @(Get-ChildItem "$env:GITHUB_WORKSPACE" -Filter nextcloud-client.py -Recurse | Where-Object FullName -notlike '*\desktop\*')
           if ($blueprints.Count -ne 1) { throw 'Expected one Craft client blueprint' }
           python brand-craft.py $blueprints[0].FullName
-          craft --src-dir "$env:GITHUB_WORKSPACE/desktop" nextcloud-client
+          craft --options "nextcloud-client.srcDir=$env:GITHUB_WORKSPACE/desktop" nextcloud-client
           craft --package nextcloud-client
           New-Item -ItemType Directory artifacts | Out-Null
           $packages = @(Get-ChildItem "$env:GITHUB_WORKSPACE/$env:CRAFT_TARGET" -Filter '*ndccloud*.exe' -Recurse | Where-Object FullName -match '\\tmp\\')
