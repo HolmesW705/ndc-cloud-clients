@@ -68,12 +68,21 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'NDC packager preparation failed' }
           craft --options "nextcloud-client.srcDir=$env:GITHUB_WORKSPACE/desktop" nextcloud-client
           if (-not (Test-Path "$env:GITHUB_WORKSPACE/$env:CRAFT_TARGET/bin/ndccloud.exe")) { throw 'NDC executable was not installed; refusing to package another client' }
+          $mainExecutable = Get-Item "$env:GITHUB_WORKSPACE/$env:CRAFT_TARGET/bin/ndccloud.exe"
+          if ($mainExecutable.VersionInfo.ProductName -ne 'NDC Cloud') { throw 'Compiled executable has the wrong product identity' }
           # Python temporary files must share the Craft drive for its hard links.
           $ndcPackageTemp = Join-Path $env:GITHUB_WORKSPACE '.ndc-package-temp'
           New-Item -ItemType Directory -Force $ndcPackageTemp | Out-Null
           $env:TEMP = $ndcPackageTemp
           $env:TMP = $ndcPackageTemp
           craft --options "nextcloud-client.srcDir=$env:GITHUB_WORKSPACE/desktop" --package nextcloud-client
+          $payloadAudit = Join-Path $env:RUNNER_TEMP 'ndc-payload-audit'
+          New-Item -ItemType Directory -Force $payloadAudit | Out-Null
+          & "$env:GITHUB_WORKSPACE/$env:CRAFT_TARGET/dev-utils/bin/7za.exe" x -y "-o$payloadAudit" "$env:GITHUB_WORKSPACE/$env:CRAFT_TARGET/tmp/ndccloud-34.0.7-ndc1-windows-x64.7z"
+          if ($LASTEXITCODE -ne 0) { throw 'Unable to inspect the actual installer payload' }
+          $archivedMain = Join-Path $payloadAudit 'bin/ndccloud.exe'
+          if (-not (Test-Path $archivedMain)) { throw 'NDC executable was stripped from the installer payload' }
+          if ((Get-FileHash -LiteralPath $archivedMain).Hash -ne (Get-FileHash -LiteralPath $mainExecutable.FullName).Hash) { throw 'Installer payload differs from the compiled NDC executable' }
           New-Item -ItemType Directory artifacts | Out-Null
           $packages = @(Get-ChildItem "$env:GITHUB_WORKSPACE/$env:CRAFT_TARGET" -Filter '*ndccloud*.exe' -Recurse | Where-Object FullName -match '\\tmp\\')
           if ($packages.Count -eq 0) { throw 'NDC installer was not produced' }
@@ -91,6 +100,8 @@ jobs:
             artifacts/
             windows-msvc2022_64-cl/tmp/ndccloud*.exe
             windows-msvc2022_64-cl/tmp/ndccloud*.7z
+            windows-msvc2022_64-cl/bin/ndccloud*.exe
+            windows-msvc2022_64-cl/bin/ndccloud*.dll
           if-no-files-found: error
           retention-days: 14
   linux:
