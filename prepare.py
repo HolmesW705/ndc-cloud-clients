@@ -29,7 +29,7 @@ def main():
     git("remote", "add", "origin", repository)
     git("fetch", "--depth", "1", "origin", revision)
     git("checkout", "--detach", "FETCH_HEAD")
-    actual = subprocess.check_output(["git", "-C", str(destination), "rev-parse", "HEAD"], text=True).strip()
+    actual = subprocess.check_output(["git", "-C", str(destination), "rev-parse", "HEAD"], universal_newlines=True).strip()
     if actual != revision:
         raise RuntimeError("upstream revision did not match")
     patch = Path(__file__).resolve().parent / "patches" / f"{args.client}-branding.patch"
