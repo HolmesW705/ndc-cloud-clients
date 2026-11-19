@@ -26,6 +26,8 @@ def main():
     def git(*arguments):
         return subprocess.run(["git", "-C", str(destination), *arguments], check=True)
     git("init")
+    # Binary Git patches must be applied to LF source on Windows as well.
+    git("config", "core.autocrlf", "false")
     git("remote", "add", "origin", repository)
     git("fetch", "--depth", "1", "origin", revision)
     git("checkout", "--detach", "FETCH_HEAD")
@@ -33,8 +35,10 @@ def main():
     if actual != revision:
         raise RuntimeError("upstream revision did not match")
     patch = Path(__file__).resolve().parent / "patches" / f"{args.client}-branding.patch"
-    git("apply", "--check", str(patch))
-    git("apply", str(patch))
+    patch_bytes = patch.read_bytes().replace(b"\r\n", b"\n")
+    for options in (("--check",), ()):
+        subprocess.run(["git", "-C", str(destination), "apply", *options, "-"],
+                       input=patch_bytes, check=True)
     print(f"NDC {args.client} source prepared at {destination}")
 
 
